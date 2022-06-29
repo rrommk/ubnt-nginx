@@ -1,0 +1,28 @@
+version: '3.1'
+services:
+  #Nginx Service
+   ubuntu_nginx:
+     image: ubuntu_nginx:v1
+     container_name: ubuntu_nginx
+     restart: unless-stopped
+     volumes:
+       - ./nginx_conf:/etc/nginx/sites-available/
+     ports:
+       - "80:80"
+     networks:
+      network_ng1:
+        ipv4_address: 172.24.4.10
+
+   app:
+     image: node_app
+     container_name: node_app
+     networks:
+      network_ng1:
+        ipv4_address: 172.24.4.100
+
+networks:
+    network_ng1:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.24.4.0/24

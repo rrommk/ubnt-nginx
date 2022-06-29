@@ -1,0 +1,55 @@
+version: '3.1'
+services:
+   mysql_wp:
+     image: mysql:8.0
+     container_name: mysql_wp
+     restart: unless-stopped
+     env_file: .env
+     volumes:
+      - ./dbdata:/var/lib/mysql
+     networks:
+      network_ng1:
+        ipv4_address: 172.24.4.20
+
+
+   wp:
+     depends_on:
+       - mysql_wp
+     image: wordpress:6.0.0-php8.0-fpm
+     container_name: wp
+     restart: unless-stopped
+     volumes:
+       - ./webroot:/var/www/html
+     env_file: .wp_env
+     environment:
+      - WORDPRESS_DB_HOST=172.24.4.20:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=$MYSQL_DATABASE
+     networks:
+      network_ng1:
+        ipv4_address: 172.24.4.15
+
+   ubuntu_nginx:
+     depends_on:
+       - wp
+     image: ubuntu_nginx:v1
+     container_name: ubuntu_nginx
+     restart: unless-stopped
+     volumes:
+       - ./nginx_conf_wp:/etc/nginx/sites-available/
+       - ./webroot:/var/www/html/
+     ports:
+       - "80:80"
+     networks:
+      network_ng1:
+        ipv4_address: 172.24.4.10
+
+
+     
+networks:
+    network_ng1:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.24.4.0/24
